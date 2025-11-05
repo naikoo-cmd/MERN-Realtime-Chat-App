@@ -13,29 +13,22 @@ const ChatContainer = () => {
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
-
-  // Track if this is the first load of a conversation
   const isInitialLoad = useRef(true);
 
   useEffect(() => {
     getMessages(selectedUser._id);
     subscribeToMessages();
-
-    // Mark as initial load when user switches conversation
     isInitialLoad.current = true;
 
     return () => unsubscribeFromMessages();
   }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
 
   useEffect(() => {
-    // Handle scroll behavior after messages load or change
     if (!messagesContainerRef.current || !messages || messages.length === 0) return;
 
     const container = messagesContainerRef.current;
 
-    // If this is the initial load of the conversation, scroll to bottom immediately
     if (isInitialLoad.current) {
-      // Use setTimeout to ensure DOM has fully rendered
       setTimeout(() => {
         if (messageEndRef.current) {
           messageEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -45,7 +38,6 @@ const ChatContainer = () => {
       return;
     }
 
-    // For subsequent messages (real-time updates), only auto-scroll if user is near bottom
     const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
 
     if (isNearBottom) {
@@ -55,13 +47,11 @@ const ChatContainer = () => {
     }
   }, [messages]);
 
-  // Reset initial load flag when user manually scrolls
   useEffect(() => {
     const container = messagesContainerRef.current;
     if (!container) return;
 
     const handleScroll = () => {
-      // If user scrolls away from bottom, mark as not initial load
       const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 10;
       if (!isAtBottom) {
         isInitialLoad.current = false;
@@ -74,7 +64,7 @@ const ChatContainer = () => {
 
   if (isMessagesLoading) {
     return (
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden animate-fade-in">
         <ChatHeader />
         <MessageSkeleton />
         <MessageInput />
@@ -83,19 +73,22 @@ const ChatContainer = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden h-full">
-      {/* Header - Fixed at top */}
+    <div className="flex-1 flex flex-col overflow-hidden h-full animate-fade-in">
       <ChatHeader />
 
-      {/* Messages - Scrollable area */}
       <div
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 min-h-0"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
-        {messages.map((message) => (
-          <div key={message._id} className={`chat ${message.senderId === authUser._id ? "chat-end" : "chat-start"}`}>
-            <div className="chat-image avatar flex-shrink-0">
+        {messages.map((message, index) => (
+          <div
+            key={message._id}
+            className={`chat ${message.senderId === authUser._id ? "chat-end" : "chat-start"}
+            animate-slide-in-message`}
+            style={{ animationDelay: `${index * 0.05}s` }}
+          >
+            <div className="chat-image avatar flex-shrink-0 transition-transform duration-300 hover:scale-110">
               <div className="size-10 rounded-full border overflow-hidden">
                 <img
                   src={
@@ -111,23 +104,25 @@ const ChatContainer = () => {
             <div className="chat-header mb-1">
               <time className="text-xs opacity-50 ml-1">{formatMessageTime(message.createdAt)}</time>
             </div>
-            <div className="chat-bubble flex flex-col max-w-[70%] md:max-w-md break-words">
+            <div
+              className="chat-bubble flex flex-col max-w-[70%] md:max-w-md break-words 
+              transition-all duration-300 hover:shadow-lg"
+            >
               {message.image && (
                 <img
                   src={message.image}
                   alt="Attachment"
-                  className="max-w-full w-auto max-h-[300px] rounded-md mb-2 object-contain"
+                  className="max-w-full w-auto max-h-[300px] rounded-md mb-2 object-contain 
+                  transition-transform duration-300 hover:scale-105"
                 />
               )}
               {message.text && <p className="break-words">{message.text}</p>}
             </div>
           </div>
         ))}
-        {/* Invisible element to scroll to */}
         <div ref={messageEndRef} />
       </div>
 
-      {/* Input - Fixed at bottom */}
       <MessageInput />
     </div>
   );
