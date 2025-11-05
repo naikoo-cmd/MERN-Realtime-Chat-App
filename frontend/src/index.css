@@ -1,3 +1,34 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ...existing code... */
+
+@layer components {
+  /* Ensure chat container uses full available height */
+  .chat-root {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Message bubble constraints */
+  .chat-bubble {
+    word-break: break-word;
+    overflow-wrap: break-word;
+    box-sizing: border-box;
+  }
+
+  /* Avatar constraints */
+  .chat-image {
+    flex-shrink: 0;
+  }
+
+  /* Ensure images in messages don't overflow */
+  .chat-bubble img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+}
